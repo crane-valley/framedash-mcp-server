@@ -1,6 +1,6 @@
 {
 	"name": "@framedash/mcp-server",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "MCP server for the Framedash analytics platform",
 	"license": "MIT",
 	"type": "module",
@@ -26,11 +26,10 @@
 		"type-check": "tsc --noEmit",
 		"test": "vitest run",
 		"test:coverage": "vitest run --coverage",
-		"clean": "rm -rf dist",
-		"prepack": "npm run clean && npm run build"
+		"clean": "rm -rf dist"
 	},
 	"dependencies": {
-		"@framedash/api-client": "0.1.0",
+		"@framedash/api-client": "0.1.1",
 		"@modelcontextprotocol/sdk": "^1.27.0",
 		"zod": "^3.25.0"
 	},
