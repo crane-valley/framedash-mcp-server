@@ -1,0 +1,46 @@
+{
+	"name": "@framedash/mcp-server",
+	"version": "0.1.0",
+	"description": "MCP server for the Framedash analytics platform",
+	"license": "MIT",
+	"type": "module",
+	"files": [
+		"dist"
+	],
+	"publishConfig": {
+		"access": "public"
+	},
+	"bin": {
+		"framedash-mcp": "./dist/index.js"
+	},
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		}
+	},
+	"scripts": {
+		"build": "tsc -p tsconfig.build.json",
+		"type-check": "tsc --noEmit",
+		"test": "vitest run",
+		"test:coverage": "vitest run --coverage",
+		"clean": "rm -rf dist",
+		"prepack": "pnpm run clean && pnpm run build"
+	},
+	"dependencies": {
+		"@framedash/api-client": "workspace:*",
+		"@modelcontextprotocol/sdk": "^1.27.0",
+		"zod": "^3.25.0"
+	},
+	"engines": {
+		"node": ">=18.0.0"
+	},
+	"devDependencies": {
+		"@types/node": "^22.0.0",
+		"@vitest/coverage-v8": "^3.2.0",
+		"typescript": "^5.7.0",
+		"vitest": "^3.2.0"
+	}
+}
