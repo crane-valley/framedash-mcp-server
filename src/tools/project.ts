@@ -1,6 +1,7 @@
 import type { ApiClient } from "@framedash/api-client";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
+import { fetchContent, fetchProjectMaps, fetchProjectStatus } from "../api.js";
 import { errorResult, projectClient, textResult } from "../helpers.js";
 
 export function registerProjectTools(server: McpServer, apiClient: ApiClient): void {
@@ -32,7 +33,7 @@ export function registerProjectTools(server: McpServer, apiClient: ApiClient): v
 		async (args) => {
 			try {
 				const client = projectClient(apiClient, args.project_id);
-				const data = await client.get(client.projectPath("status"));
+				const data = await fetchProjectStatus(client);
 				return textResult(data);
 			} catch (err) {
 				return errorResult(err);
@@ -52,7 +53,7 @@ export function registerProjectTools(server: McpServer, apiClient: ApiClient): v
 		async (args) => {
 			try {
 				const client = projectClient(apiClient, args.project_id);
-				const data = await client.get(client.projectPath("maps"));
+				const data = await fetchProjectMaps(client);
 				return textResult(data);
 			} catch (err) {
 				return errorResult(err);
@@ -72,11 +73,10 @@ export function registerProjectTools(server: McpServer, apiClient: ApiClient): v
 		},
 		async (args) => {
 			try {
+				// projectClient preserves the optional project_id override: the
+				// derived client sends X-Project-Id on this non-project-scoped path.
 				const client = projectClient(apiClient, args.project_id);
-				const params = new URLSearchParams();
-				if (args.type) params.set("type", args.type);
-				const qs = params.toString() ? `?${params}` : "";
-				const data = await client.get(`/api/v1/content${qs}`);
+				const data = await fetchContent(client, { type: args.type });
 				return textResult(data);
 			} catch (err) {
 				return errorResult(err);

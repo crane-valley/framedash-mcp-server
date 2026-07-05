@@ -1,5 +1,6 @@
 import type { ApiClient } from "@framedash/api-client";
 import { type McpServer, ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { fetchProjectContent, fetchProjectMaps, fetchProjectStatus } from "./api.js";
 import { getErrorMessage, projectClient, truncate } from "./helpers.js";
 
 export function registerResources(server: McpServer, apiClient: ApiClient): void {
@@ -33,7 +34,7 @@ export function registerResources(server: McpServer, apiClient: ApiClient): void
 		async (uri, params) => {
 			try {
 				const client = projectClient(apiClient, String(params.projectId));
-				const data = await client.get(client.projectPath("maps"));
+				const data = await fetchProjectMaps(client);
 				return { contents: [{ uri: uri.href, text: truncate(data) }] };
 			} catch (err) {
 				const msg = getErrorMessage(err);
@@ -53,7 +54,7 @@ export function registerResources(server: McpServer, apiClient: ApiClient): void
 		async (uri, params) => {
 			try {
 				const client = projectClient(apiClient, String(params.projectId));
-				const data = await client.get(client.projectPath("content"));
+				const data = await fetchProjectContent(client);
 				return { contents: [{ uri: uri.href, text: truncate(data) }] };
 			} catch (err) {
 				const msg = getErrorMessage(err);
@@ -73,7 +74,7 @@ export function registerResources(server: McpServer, apiClient: ApiClient): void
 		async (uri, params) => {
 			try {
 				const client = projectClient(apiClient, String(params.projectId));
-				const data = await client.get(client.projectPath("status"));
+				const data = await fetchProjectStatus(client);
 				return { contents: [{ uri: uri.href, text: truncate(data) }] };
 			} catch (err) {
 				const msg = getErrorMessage(err);

@@ -1,7 +1,13 @@
 #!/usr/bin/env node
+import { readFileSync } from "node:fs";
 import { ApiClient } from "@framedash/api-client";
 import { createServer } from "./server.js";
 import { StrictStdioServerTransport } from "./transport.js";
+
+// Source the handshake version from package.json (same approach as the CLI) so
+// the advertised server version cannot drift from the published package.
+const VERSION = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"))
+	.version as string;
 
 const apiKey = process.env.FRAMEDASH_API_KEY;
 if (!apiKey) {
@@ -26,7 +32,7 @@ try {
 			throw err;
 		},
 	});
-	const server = createServer(client);
+	const server = createServer(client, VERSION);
 	const transport = new StrictStdioServerTransport();
 	await server.connect(transport);
 } catch (err) {

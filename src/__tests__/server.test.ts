@@ -21,7 +21,7 @@ function mockClient(data: unknown = []): ApiClient {
 
 describe("createServer", () => {
 	it("creates a server with 12 tools", () => {
-		const server = createServer(mockClient());
+		const server = createServer(mockClient(), "0.0.0-test");
 		// Server instance should exist
 		expect(server).toBeDefined();
 		expect(server.server).toBeDefined();
@@ -29,7 +29,7 @@ describe("createServer", () => {
 
 	it("registers all 12 tools", () => {
 		const client = mockClient();
-		const server = createServer(client);
+		const server = createServer(client, "0.0.0-test");
 
 		const tools = (server as unknown as { _registeredTools: Record<string, unknown> })
 			._registeredTools;
@@ -57,7 +57,7 @@ describe("createServer", () => {
 	});
 
 	it("registers 1 static resource and 3 resource templates", () => {
-		const server = createServer(mockClient());
+		const server = createServer(mockClient(), "0.0.0-test");
 
 		const resources = Object.keys(
 			(server as unknown as { _registeredResources: Record<string, unknown> })._registeredResources,

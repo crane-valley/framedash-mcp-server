@@ -15,7 +15,7 @@ Add to your `claude_desktop_config.json`:
       "command": "npx",
       "args": ["@framedash/mcp-server"],
       "env": {
-        "FRAMEDASH_API_KEY": "fd_admin_xxx",
+        "FRAMEDASH_API_KEY": "fd_xxx",
         "FRAMEDASH_PROJECT_ID": "your-project-uuid"
       }
     }
@@ -34,7 +34,7 @@ Add to your VS Code settings:
       "command": "npx",
       "args": ["@framedash/mcp-server"],
       "env": {
-        "FRAMEDASH_API_KEY": "fd_admin_xxx",
+        "FRAMEDASH_API_KEY": "fd_xxx",
         "FRAMEDASH_PROJECT_ID": "your-project-uuid"
       }
     }
@@ -46,7 +46,7 @@ Add to your VS Code settings:
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `FRAMEDASH_API_KEY` | Yes | Admin API key (`fd_admin_` prefix) |
+| `FRAMEDASH_API_KEY` | Yes | API key with `analytics:read` for the aggregate tools; the raw `query` tool additionally requires `data:admin` |
 | `FRAMEDASH_PROJECT_ID` | No | Default project UUID for project-scoped tools |
 | `FRAMEDASH_BASE_URL` | No | API base URL (default: `https://app.framedash.dev`) |
 

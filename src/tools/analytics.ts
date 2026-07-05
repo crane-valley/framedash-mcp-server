@@ -1,16 +1,25 @@
-import type { ApiClient } from "@framedash/api-client";
+import {
+	type ApiClient,
+	buildDashboardPath,
+	buildFunnelPath,
+	buildHeatmapPath,
+	buildInsightsPath,
+	buildRetentionPath,
+} from "@framedash/api-client";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { errorResult, projectClient, textResult } from "../helpers.js";
 
 // The REST API rejects values outside these sets with HTTP 400. They mirror the
 // web app's constants (ALLOWED_DAYS / ALLOWED_LIMITS in lib/analytics/constants,
-// VALID_DAYS / VALID_CELL_SIZES in lib/heatmap-constants). The MCP server is a
-// separate package and cannot import them, so keep these in sync if the API changes.
-// Constraining the input schema lets the MCP client reject invalid values up front
-// instead of after a server round-trip.
+// ALLOWED_WINDOW_SECONDS in the funnels route, VALID_DAYS / VALID_CELL_SIZES in
+// lib/heatmap-constants). The MCP server is a separate package and cannot import
+// them, so keep these in sync if the API changes. Constraining the input schema
+// lets the MCP client reject invalid values up front instead of after a server
+// round-trip.
 const ANALYTICS_DAYS = [7, 14, 30, 90] as const;
 const INSIGHTS_LIMITS = [10, 20, 50] as const;
+const FUNNEL_WINDOWS = [3600, 21600, 86400, 604800] as const;
 const HEATMAP_DAYS = [1, 7, 14, 30] as const;
 const HEATMAP_CELL_SIZES = [5, 10, 25, 50] as const;
 
@@ -44,10 +53,7 @@ export function registerAnalyticsTools(server: McpServer, apiClient: ApiClient):
 		async (args) => {
 			try {
 				const client = projectClient(apiClient, args.project_id);
-				const params = new URLSearchParams();
-				if (args.days) params.set("days", String(args.days));
-				const qs = params.toString() ? `?${params}` : "";
-				const data = await client.get(client.projectPath(`dashboard${qs}`));
+				const data = await client.get(client.projectPath(buildDashboardPath({ days: args.days })));
 				return textResult(data);
 			} catch (err) {
 				return errorResult(err);
@@ -68,10 +74,7 @@ export function registerAnalyticsTools(server: McpServer, apiClient: ApiClient):
 		async (args) => {
 			try {
 				const client = projectClient(apiClient, args.project_id);
-				const params = new URLSearchParams();
-				if (args.days) params.set("days", String(args.days));
-				const qs = params.toString() ? `?${params}` : "";
-				const data = await client.get(client.projectPath(`retention${qs}`));
+				const data = await client.get(client.projectPath(buildRetentionPath({ days: args.days })));
 				return textResult(data);
 			} catch (err) {
 				return errorResult(err);
@@ -88,14 +91,20 @@ export function registerAnalyticsTools(server: McpServer, apiClient: ApiClient):
 				project_id: z.string().uuid().optional().describe("Override the default project ID"),
 				steps: z.string().describe("Comma-separated event names (2-8 steps)"),
 				days: allowedIntEnum(ANALYTICS_DAYS, "Time period: 7, 14, 30, or 90 days (default 30)"),
+				window: allowedIntEnum(
+					FUNNEL_WINDOWS,
+					"Conversion window in seconds: 3600, 21600, 86400, or 604800 (default 86400)",
+				),
 			},
 		},
 		async (args) => {
 			try {
 				const client = projectClient(apiClient, args.project_id);
-				const params = new URLSearchParams({ steps: args.steps });
-				if (args.days) params.set("days", String(args.days));
-				const data = await client.get(client.projectPath(`funnels?${params}`));
+				const data = await client.get(
+					client.projectPath(
+						buildFunnelPath({ steps: args.steps, days: args.days, window: args.window }),
+					),
+				);
 				return textResult(data);
 			} catch (err) {
 				return errorResult(err);
@@ -120,14 +129,17 @@ export function registerAnalyticsTools(server: McpServer, apiClient: ApiClient):
 		async (args) => {
 			try {
 				const client = projectClient(apiClient, args.project_id);
-				const params = new URLSearchParams({
-					metric: args.metric,
-					groupBy: args.group_by,
-				});
-				if (args.days) params.set("days", String(args.days));
-				if (args.limit) params.set("limit", String(args.limit));
-				if (args.event_name) params.set("eventName", args.event_name);
-				const data = await client.get(client.projectPath(`insights?${params}`));
+				const data = await client.get(
+					client.projectPath(
+						buildInsightsPath({
+							metric: args.metric,
+							groupBy: args.group_by,
+							days: args.days,
+							limit: args.limit,
+							eventName: args.event_name,
+						}),
+					),
+				);
 				return textResult(data);
 			} catch (err) {
 				return errorResult(err);
@@ -153,11 +165,16 @@ export function registerAnalyticsTools(server: McpServer, apiClient: ApiClient):
 		async (args) => {
 			try {
 				const client = projectClient(apiClient, args.project_id);
-				const params = new URLSearchParams({ mapId: args.map_id });
-				if (args.cell_size) params.set("cellSize", String(args.cell_size));
-				if (args.days) params.set("days", String(args.days));
-				if (args.event_name) params.set("eventName", args.event_name);
-				const data = await client.get(client.projectPath(`heatmap?${params}`));
+				const data = await client.get(
+					client.projectPath(
+						buildHeatmapPath({
+							mapId: args.map_id,
+							cellSize: args.cell_size,
+							days: args.days,
+							eventName: args.event_name,
+						}),
+					),
+				);
 				return textResult(data);
 			} catch (err) {
 				return errorResult(err);
