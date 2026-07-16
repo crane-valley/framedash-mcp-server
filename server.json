@@ -1,0 +1,42 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.crane-valley/framedash-mcp-server",
+  "description": "MCP server for Framedash game telemetry: query analytics, heatmaps, perf regressions, and alerts",
+  "repository": {
+    "url": "https://github.com/crane-valley/framedash-mcp-server",
+    "source": "github"
+  },
+  "websiteUrl": "https://framedash.dev",
+  "version": "0.1.3",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@framedash/mcp-server",
+      "version": "0.1.3",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "FRAMEDASH_API_KEY",
+          "description": "Framedash API key. Create one on your project's API Keys page at https://app.framedash.dev.",
+          "isRequired": true,
+          "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "FRAMEDASH_PROJECT_ID",
+          "description": "Default project id. When unset, project-scoped tools require a project_id argument.",
+          "isRequired": false,
+          "format": "string"
+        },
+        {
+          "name": "FRAMEDASH_BASE_URL",
+          "description": "API base URL. Defaults to https://app.framedash.dev.",
+          "isRequired": false,
+          "format": "string"
+        }
+      ]
+    }
+  ]
+}

@@ -1,7 +1,23 @@
 {
 	"name": "@framedash/mcp-server",
-	"version": "0.1.2",
-	"description": "MCP server for the Framedash analytics platform",
+	"version": "0.1.3",
+	"description": "MCP server for Framedash game telemetry: query game analytics, heatmaps, perf regressions, retention, and alerts from Claude and other AI agents",
+	"mcpName": "io.github.crane-valley/framedash-mcp-server",
+	"keywords": [
+		"mcp",
+		"mcp-server",
+		"model-context-protocol",
+		"game-analytics",
+		"game-telemetry",
+		"performance",
+		"heatmap",
+		"clickhouse",
+		"claude",
+		"ai-agent",
+		"unity",
+		"unreal-engine",
+		"godot"
+	],
 	"license": "MIT",
 	"type": "module",
 	"files": [
@@ -34,7 +50,7 @@
 		"clean": "rm -rf dist"
 	},
 	"dependencies": {
-		"@framedash/api-client": "0.1.3",
+		"@framedash/api-client": "0.1.4",
 		"@modelcontextprotocol/sdk": "^1.29.0",
 		"zod": "^4.3.6"
 	},
@@ -43,9 +59,9 @@
 	},
 	"devDependencies": {
 		"@types/node": "^22.0.0",
-		"@vitest/coverage-v8": "^3.2.0",
+		"@vitest/coverage-v8": "^3.2.6",
 		"typescript": "^5.7.0",
-		"vitest": "^3.2.0"
+		"vitest": "^3.2.6"
 	},
 	"repository": {
 		"type": "git",

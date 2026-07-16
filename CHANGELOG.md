@@ -6,6 +6,22 @@ follows [Keep a Changelog](https://keepachangelog.com/) and
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-07-17
+
+### Added
+
+- npm `keywords` and an `mcpName` field, a `server.json` MCP Registry manifest,
+  and a gated registry-publish step in the mirror release workflow, so the
+  server is discoverable and installable from the MCP Registry.
+
+### Changed
+
+- Sharper package description (game telemetry: analytics, heatmaps, perf
+  regressions, retention, alerts from AI agents).
+- The missing-`FRAMEDASH_API_KEY` error now names the env var, the project API
+  Keys page (https://app.framedash.dev), and the docs URL so an AI agent can
+  self-serve setup.
+
 ## [0.1.2] - 2026-07-05
 
 ### Added

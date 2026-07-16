@@ -11,7 +11,9 @@ const VERSION = JSON.parse(readFileSync(new URL("../package.json", import.meta.u
 
 const apiKey = process.env.FRAMEDASH_API_KEY;
 if (!apiKey) {
-	process.stderr.write("Error: FRAMEDASH_API_KEY environment variable is required\n");
+	process.stderr.write(
+		"Error: FRAMEDASH_API_KEY environment variable is required. Create an API key on your project's API Keys page at https://app.framedash.dev and set FRAMEDASH_API_KEY. Docs: https://docs.framedash.dev\n",
+	);
 	process.exit(1);
 }
 
