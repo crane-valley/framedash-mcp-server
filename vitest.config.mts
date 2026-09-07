@@ -1,9 +1,12 @@
 import { defineConfig } from "vitest/config";
+import { MAX_TEST_WORKERS, MIN_TEST_WORKERS } from "./vitest.shared.mjs";
 
 export default defineConfig({
 	test: {
 		environment: "node",
 		include: ["src/**/*.test.ts"],
+		maxWorkers: MAX_TEST_WORKERS,
+		minWorkers: MIN_TEST_WORKERS,
 		coverage: {
 			provider: "v8",
 			experimentalAstAwareRemapping: true,
@@ -17,7 +20,7 @@ export default defineConfig({
 				statements: 12,
 				branches: 0,
 				functions: 19,
-				lines: 13,
+				lines: 70,
 			},
 		},
 	},

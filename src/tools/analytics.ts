@@ -24,11 +24,10 @@ const HEATMAP_DAYS = [1, 7, 14, 30] as const;
 const HEATMAP_CELL_SIZES = [5, 10, 25, 50] as const;
 
 /**
- * Optional value constrained to an allowed set, mirroring the REST API. Built from
- * z.union(z.literal(...)) rather than z.number().refine(...) so the allowed values
- * serialize into the JSON Schema the MCP SDK publishes -- `refine` runs opaque JS
- * and is dropped by the schema converter, which would leave the LLM unable to see
- * the constraint and reject out-of-set values before a server round-trip.
+ * Built from z.union(z.literal(...)) rather than z.number().refine(...) so the allowed values
+ * serialize into the JSON Schema the MCP SDK publishes -- `refine` runs opaque JS and is
+ * dropped by the schema converter, which would leave the LLM unable to see the constraint and
+ * reject out-of-set values before a server round-trip.
  */
 function allowedIntEnum<T extends number>(values: readonly [T, T, ...T[]], description: string) {
 	const literals = values.map((v) => z.literal(v)) as unknown as [

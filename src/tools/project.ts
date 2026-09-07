@@ -73,8 +73,6 @@ export function registerProjectTools(server: McpServer, apiClient: ApiClient): v
 		},
 		async (args) => {
 			try {
-				// projectClient preserves the optional project_id override: the
-				// derived client sends X-Project-Id on this non-project-scoped path.
 				const client = projectClient(apiClient, args.project_id);
 				const data = await fetchContent(client, { type: args.type });
 				return textResult(data);

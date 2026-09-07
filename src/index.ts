@@ -30,6 +30,7 @@ try {
 		baseUrl,
 		apiKey,
 		projectId,
+		queryTimeoutMs: 120_000,
 		onError(err) {
 			throw err;
 		},

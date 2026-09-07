@@ -70,9 +70,6 @@ describe("StrictStdioServerTransport", () => {
 		transport.onmessage = onmessage;
 		transport.onerror = onerror;
 
-		// 5 MB of garbage (no newline) blows past the 4 MB cap. The cap fires and
-		// the transport must keep discarding the remainder of this frame —
-		// including the JSON suffix — until the terminating newline.
 		const garbage = Buffer.alloc(5 * 1024 * 1024, 0x41);
 		transport.feedForTest(garbage);
 		transport.feedForTest('{"jsonrpc":"2.0","id":1,"method":"ping"}\n');
@@ -86,7 +83,6 @@ describe("StrictStdioServerTransport", () => {
 		transport.feedForTest(`${JSON.stringify(valid)}\n`);
 		expect(onmessage).toHaveBeenCalledWith(valid);
 
-		// The cap fired at least once with a Parse error envelope.
 		const lines = readStdoutLines(stdout);
 		expect(lines.length).toBeGreaterThanOrEqual(1);
 		expect(JSON.parse(lines[0]!).error.code).toBe(-32700);
@@ -102,7 +98,7 @@ describe("StrictStdioServerTransport", () => {
 		// Stream 5 MB of garbage (no newline) in 1 MB chunks. Without the cap this
 		// would O(N^2)-copy via Buffer.concat and never finish; with the cap we get
 		// one Parse error and the next valid frame still works.
-		const oneMb = Buffer.alloc(1024 * 1024, 0x41); // 'A'
+		const oneMb = Buffer.alloc(1024 * 1024, 0x41);
 		for (let i = 0; i < 5; i++) {
 			transport.feedForTest(oneMb);
 		}
@@ -131,7 +127,6 @@ describe("StrictStdioServerTransport", () => {
 			return false;
 		};
 
-		// First parse error: write happens, returns false, transport saturates.
 		transport.feedForTest("garbage1\n");
 		const firstLines = readStdoutLines(stdout);
 		expect(firstLines).toHaveLength(1);
@@ -166,8 +161,6 @@ describe("StrictStdioServerTransport", () => {
 			sends.push(transport.send({ jsonrpc: "2.0", id: i, result: {} }));
 		}
 
-		// Drive the chain forward: each iteration yields, samples the listener
-		// counts, then emits drain to unblock the in-flight write.
 		while (writes.length < 25) {
 			await new Promise((resolve) => setImmediate(resolve));
 			peakDrainListeners.value = Math.max(peakDrainListeners.value, stdout.listenerCount("drain"));
@@ -177,8 +170,6 @@ describe("StrictStdioServerTransport", () => {
 
 		await Promise.all(sends);
 
-		// At most one in-flight write means at most one of each listener type
-		// at any sampled moment.
 		expect(peakDrainListeners.value).toBeLessThanOrEqual(1);
 		expect(peakCloseListeners.value).toBeLessThanOrEqual(1);
 		expect(writes).toHaveLength(25);
@@ -204,9 +195,6 @@ describe("StrictStdioServerTransport", () => {
 		const onerror = vi.fn();
 		transport.onerror = onerror;
 
-		// Force the underlying stdout to throw on the next write to mirror the
-		// behavior of a destroyed stream. The transport must surface the error via
-		// onerror but must not propagate it to the data listener.
 		const originalWrite = stdout.write.bind(stdout);
 		let writeAttempts = 0;
 		// biome-ignore lint/suspicious/noExplicitAny: PassThrough.write monkey-patch for the test
@@ -218,7 +206,6 @@ describe("StrictStdioServerTransport", () => {
 		expect(() => transport.feedForTest("not-json\n")).not.toThrow();
 		expect(writeAttempts).toBeGreaterThan(0);
 		expect(onerror).toHaveBeenCalled();
-		// Restore so the test runner can drain the PassThrough cleanly.
 		// biome-ignore lint/suspicious/noExplicitAny: restore the original write
 		(stdout as any).write = originalWrite;
 	});
