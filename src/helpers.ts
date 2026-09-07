@@ -1,6 +1,6 @@
 import type { ApiClient } from "@framedash/api-client";
 
-const MAX_RESPONSE_SIZE = 50 * 1024; // 50 KB
+const MAX_RESPONSE_SIZE = 50 * 1024;
 const ARRAY_TRUNCATION_ROW_LIMIT = 50;
 const ARRAY_OPEN_LENGTH = "[".length;
 const ARRAY_CLOSE = "\n]";
@@ -183,7 +183,6 @@ export function textResult(data: unknown) {
 	return { content: [{ type: "text" as const, text: truncate(data) }] };
 }
 
-/** Extract a human-readable message from an unknown error value. */
 export function getErrorMessage(err: unknown): string {
 	return err instanceof Error ? err.message : String(err);
 }
@@ -197,7 +196,6 @@ export function errorResult(err: unknown) {
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-/** Create an ApiClient with an optional project_id override. */
 export function projectClient(base: ApiClient, overrideProjectId?: string): ApiClient {
 	if (!overrideProjectId) return base;
 	if (!UUID_RE.test(overrideProjectId)) {

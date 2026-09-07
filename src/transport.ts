@@ -11,13 +11,9 @@ import type { JSONRPCMessage, MessageExtraInfo } from "@modelcontextprotocol/sdk
 const MAX_LINE_BYTES = 4 * 1024 * 1024;
 
 /**
- * Stdio transport for an MCP server that responds with a JSON-RPC `Parse error`
- * envelope (-32700, id null) on stdout when stdin contains a non-JSON line.
- *
- * The upstream `StdioServerTransport` forwards parse failures to an optional
- * `onerror` hook but never replies on the wire, so a client sending a malformed
- * frame never learns it was dropped. JSON-RPC 2.0 requires an error response
- * with id=null for unparseable input.
+ * The upstream `StdioServerTransport` forwards parse failures to an optional `onerror` hook but
+ * never replies on the wire, so a client sending a malformed frame never learns it was dropped.
+ * JSON-RPC 2.0 requires an error response with id=null for unparseable input.
  */
 export class StrictStdioServerTransport implements Transport {
 	private readonly _stdin: Readable;
@@ -31,10 +27,8 @@ export class StrictStdioServerTransport implements Transport {
 	// (everything up to and including the next newline) so the trailing bytes of
 	// a too-large line cannot be parsed as a fresh JSON-RPC message.
 	private _discardingFrame = false;
-	// True while stdout has signaled backpressure (write returned false). We
-	// drop best-effort parse-error envelopes while saturated so a peer that
-	// floods malformed input without reading stdout cannot pin unbounded reply
-	// bytes in Node's internal buffer.
+	// We drop best-effort parse-error envelopes while saturated so a peer that floods malformed
+	// input without reading stdout cannot pin unbounded reply bytes in Node's internal buffer.
 	private _stdoutSaturated = false;
 	private _drainAttached = false;
 	// Serialize send() writes through a single promise chain so concurrent
@@ -90,8 +84,6 @@ export class StrictStdioServerTransport implements Transport {
 	}
 
 	private _ondata = (chunk: Buffer): void => {
-		// If we are discarding the tail of an oversized frame, skip ahead to the
-		// next newline before resuming normal framing.
 		if (this._discardingFrame) {
 			const nl = chunk.indexOf(0x0a);
 			if (nl === -1) return;
@@ -120,9 +112,6 @@ export class StrictStdioServerTransport implements Transport {
 			return;
 		}
 
-		// Newline present — flatten once and process all complete lines. If the
-		// pending data + this chunk exceeds the cap and we have no terminator
-		// before the cap, reset and report a parse error.
 		this._chunks.push(chunk);
 		this._chunksLen = projected;
 		let buf = Buffer.concat(this._chunks, this._chunksLen);
@@ -132,8 +121,6 @@ export class StrictStdioServerTransport implements Transport {
 			const idx = buf.indexOf(0x0a);
 			if (idx === -1) break;
 			if (idx > MAX_LINE_BYTES) {
-				// The frame before the newline is too large; drop it and resync to
-				// the byte after the newline.
 				buf = buf.subarray(idx + 1);
 				this._emitParseError(
 					new Error(`JSON-RPC frame exceeded ${MAX_LINE_BYTES} bytes without a newline`),
@@ -255,7 +242,6 @@ export class StrictStdioServerTransport implements Transport {
 		});
 	}
 
-	/** Test helper: feed bytes through the same path as live stdin data. */
 	feedForTest(chunk: Buffer | string): void {
 		const buf = typeof chunk === "string" ? Buffer.from(chunk, "utf8") : chunk;
 		this._ondata(buf);

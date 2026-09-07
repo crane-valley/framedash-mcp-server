@@ -6,6 +6,14 @@ follows [Keep a Changelog](https://keepachangelog.com/) and
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-09-07
+
+### Fixed
+
+- The stdio server allows 120 seconds for query requests to survive ClickHouse
+  idle resume. Other API requests keep their 30-second timeout. Uses
+  `@framedash/api-client` 0.1.5; the embedded server respects its supplied client.
+
 ## [0.1.3] - 2026-07-17
 
 ### Added
