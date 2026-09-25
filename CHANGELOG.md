@@ -6,6 +6,14 @@ follows [Keep a Changelog](https://keepachangelog.com/) and
 
 ## [Unreleased]
 
+## [0.1.5] - 2026-09-25
+
+### Fixed
+
+- Extend stdio Query requests from 120 to 240 seconds for ClickHouse idle
+  resume. Other requests retain 30 seconds; embedded servers still use the
+  supplied client's timeout settings.
+
 ## [0.1.4] - 2026-09-07
 
 ### Fixed
