@@ -6,6 +6,28 @@ follows [Keep a Changelog](https://keepachangelog.com/) and
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-04
+
+### Fixed
+
+- Upgrade the MCP SDK to 1.32.0 or later and explicitly cap tool arguments at
+  16 combined object members and array elements before schema validation.
+  All existing tools accept at most six scalar fields. Clients sending more
+  than 16 elements, including ignored fields, must remove extraneous input;
+  these calls now return `isError: true` without invoking the API. Scalar
+  string lengths and the hosted endpoint's existing 1 MiB body cap are unchanged.
+
+### Changed
+
+- **Breaking:** Require Node.js 22 or later (`engines.node` `>=22.0.0`). This
+  breaks Node 20 users: Node.js 20 reached end of life and does not
+  receive the CVE-2026-111497 fix; on Node 20 npm warns (EBADENGINE) and
+  support is no longer tested. Upgrade to Node.js 22.23.4+ or 24.22.1+.
+- `get_heatmap` now always sends `coordinates=world` when querying heatmap data.
+  On Y-up maps, returned cells carry ground coordinates in `x` and `z`, while
+  height is along `y`; inspect `upAxis` from `list_maps` to determine map
+  orientation.
+
 ## [0.1.5] - 2026-09-25
 
 ### Fixed

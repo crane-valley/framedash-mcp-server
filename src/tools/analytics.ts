@@ -150,7 +150,8 @@ export function registerAnalyticsTools(server: McpServer, apiClient: ApiClient):
 		"get_heatmap",
 		{
 			title: "Get Heatmap",
-			description: "Get heatmap grid data for a map. Returns performance metrics per cell.",
+			description:
+				'Get heatmap grid data for a map. Returns performance metrics per cell in engine world coordinates. For a map whose list_maps upAxis is "y" (Unity, Godot), the ground cell is x/z and y is omitted; otherwise it is x/y.',
 			inputSchema: {
 				project_id: z.string().uuid().optional().describe("Override the default project ID"),
 				map_id: z
@@ -171,6 +172,7 @@ export function registerAnalyticsTools(server: McpServer, apiClient: ApiClient):
 							cellSize: args.cell_size,
 							days: args.days,
 							eventName: args.event_name,
+							coordinates: "world",
 						}),
 					),
 				);

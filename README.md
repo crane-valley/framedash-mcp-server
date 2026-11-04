@@ -79,6 +79,12 @@ require an explicit `project_id` argument per call.
 | `framedash://projects/{projectId}/content` | Content registry |
 | `framedash://projects/{projectId}/status` | Project health status |
 
+## Hosted HTTP compatibility
+
+The stateless hosted HTTP endpoint `/api/mcp` rejects request batches containing more than 100 messages with HTTP 400 and JSON-RPC error code -32600. This limit applies per POST request and is separate from the existing 1 MiB request-body limit. The independent stdio transport remains unaffected.
+
+To accommodate this bound, update clients to split message batches into groups of at most 100 messages, or transmit messages as individual POST requests.
+
 ## Development
 
 Run from the repository root:

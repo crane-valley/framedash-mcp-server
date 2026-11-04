@@ -13,10 +13,11 @@ import { registerQueryTools } from "./tools/query.js";
  * this module makes it bundler-safe for the Next.js remote endpoint.
  */
 export function createServer(apiClient: ApiClient, version: string): McpServer {
-	const server = new McpServer({
-		name: "framedash",
-		version,
-	});
+	const server = new McpServer(
+		{ name: "framedash", version },
+		// Current tools need at most six scalar fields; bound validation of extra/nested input too.
+		{ maxToolInputElements: 16 },
+	);
 
 	registerQueryTools(server, apiClient);
 	registerAnalyticsTools(server, apiClient);
