@@ -120,6 +120,7 @@ describe("createServer", () => {
 			sql: "SELECT 1",
 			limit: 5,
 		});
+		expect(client.get).toHaveBeenCalledWith(expect.stringContaining("coordinates=world"));
 	});
 });
 
