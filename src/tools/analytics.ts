@@ -8,7 +8,8 @@ import {
 } from "@framedash/api-client";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { errorResult, projectClient, textResult } from "../helpers.js";
+import { errorResult, projectClient, structuredArrayResult, textResult } from "../helpers.js";
+import { ANALYTICS_DAYS, allowedIntEnum } from "./schemas.js";
 
 // The REST API rejects values outside these sets with HTTP 400. They mirror the
 // web app's constants (ALLOWED_DAYS / ALLOWED_LIMITS in lib/analytics/constants,
@@ -17,33 +18,19 @@ import { errorResult, projectClient, textResult } from "../helpers.js";
 // them, so keep these in sync if the API changes. Constraining the input schema
 // lets the MCP client reject invalid values up front instead of after a server
 // round-trip.
-const ANALYTICS_DAYS = [7, 14, 30, 90] as const;
 const INSIGHTS_LIMITS = [10, 20, 50] as const;
 const FUNNEL_WINDOWS = [3600, 21600, 86400, 604800] as const;
 const HEATMAP_DAYS = [1, 7, 14, 30] as const;
 const HEATMAP_CELL_SIZES = [5, 10, 25, 50] as const;
-
-/**
- * Built from z.union(z.literal(...)) rather than z.number().refine(...) so the allowed values
- * serialize into the JSON Schema the MCP SDK publishes -- `refine` runs opaque JS and is
- * dropped by the schema converter, which would leave the LLM unable to see the constraint and
- * reject out-of-set values before a server round-trip.
- */
-function allowedIntEnum<T extends number>(values: readonly [T, T, ...T[]], description: string) {
-	const literals = values.map((v) => z.literal(v)) as unknown as [
-		z.ZodLiteral<T>,
-		z.ZodLiteral<T>,
-		...z.ZodLiteral<T>[],
-	];
-	return z.union(literals).optional().describe(description);
-}
+const CONTEXT_FIELD_LIMIT = 256;
 
 export function registerAnalyticsTools(server: McpServer, apiClient: ApiClient): void {
 	server.registerTool(
 		"get_dashboard",
 		{
 			title: "Get Dashboard",
-			description: "Get project dashboard metrics (KPIs, daily active users, top events).",
+			description:
+				"Get project dashboard metrics (KPIs, daily active users, top events). Requires analytics:read.",
 			inputSchema: {
 				project_id: z.string().uuid().optional().describe("Override the default project ID"),
 				days: allowedIntEnum(ANALYTICS_DAYS, "Time period: 7, 14, 30, or 90 days (default 30)"),
@@ -64,7 +51,7 @@ export function registerAnalyticsTools(server: McpServer, apiClient: ApiClient):
 		"get_retention",
 		{
 			title: "Get Retention",
-			description: "Get player retention cohort analysis.",
+			description: "Get player retention cohort analysis. Requires analytics:read.",
 			inputSchema: {
 				project_id: z.string().uuid().optional().describe("Override the default project ID"),
 				days: allowedIntEnum(ANALYTICS_DAYS, "Time period: 7, 14, 30, or 90 days (default 30)"),
@@ -85,7 +72,7 @@ export function registerAnalyticsTools(server: McpServer, apiClient: ApiClient):
 		"get_funnel",
 		{
 			title: "Get Funnel",
-			description: "Analyze event funnels. Requires 2-8 event names as steps.",
+			description: "Analyze event funnels. Requires analytics:read and 2-8 event names as steps.",
 			inputSchema: {
 				project_id: z.string().uuid().optional().describe("Override the default project ID"),
 				steps: z.string().describe("Comma-separated event names (2-8 steps)"),
@@ -115,7 +102,8 @@ export function registerAnalyticsTools(server: McpServer, apiClient: ApiClient):
 		"get_insights",
 		{
 			title: "Get Insights",
-			description: "Get aggregated insights for a metric grouped by a dimension.",
+			description:
+				"Get aggregated insights for a metric grouped by a dimension. Requires analytics:read. Results are the top groups, not an exact-build event breakdown; use list_builds/compare_builds for readonly build comparisons.",
 			inputSchema: {
 				project_id: z.string().uuid().optional().describe("Override the default project ID"),
 				metric: z.string().describe("Metric to aggregate: count or unique_players"),
@@ -151,14 +139,14 @@ export function registerAnalyticsTools(server: McpServer, apiClient: ApiClient):
 		{
 			title: "Get Heatmap",
 			description:
-				'Get heatmap grid data for a map. Returns performance metrics per cell in engine world coordinates. For a map whose list_maps upAxis is "y" (Unity, Godot), the ground cell is x/z and y is omitted; otherwise it is x/y.',
+				"Get heatmap grid data for a map (analytics:read). Legacy text is unchanged; structuredContent.cells contains the same complete cell subset, with total/returned/truncated describing response truncation, not ingestion readiness. Context filter strings are prefixes when listed in context.truncated_fields. Coordinates and cell_size use engine world units, not image pixels. Consult list_maps for upAxis/bounds: Y-up maps (Unity, Godot) use x/z and omit y; otherwise x/y. Null metric causes are unknown.",
 			inputSchema: {
 				project_id: z.string().uuid().optional().describe("Override the default project ID"),
 				map_id: z
 					.string()
 					.describe("Map ID to query (accepts the row UUID or slug from list_maps)"),
 				cell_size: allowedIntEnum(HEATMAP_CELL_SIZES, "Cell size: 5, 10, 25, or 50 (default 25)"),
-				days: allowedIntEnum(HEATMAP_DAYS, "Time period: 1, 7, 14, or 30 days (default 7)"),
+				days: allowedIntEnum(HEATMAP_DAYS, "Time period: 1, 7, 14, or 30 days (default 30)"),
 				event_name: z.string().optional().describe("Filter by event name"),
 			},
 		},
@@ -176,7 +164,47 @@ export function registerAnalyticsTools(server: McpServer, apiClient: ApiClient):
 						}),
 					),
 				);
-				return textResult(data);
+				const result = structuredArrayResult(data);
+				const filters = {
+					project_id: client.currentProjectId,
+					map_id: args.map_id,
+					event_name: args.event_name || null,
+				};
+				const truncatedFields = Object.entries(filters)
+					.filter(([, value]) => value !== null && value.length > CONTEXT_FIELD_LIMIT)
+					.map(([field]) => field);
+				return {
+					...result,
+					structuredContent: {
+						...result.structuredContent,
+						context: {
+							...Object.fromEntries(
+								Object.entries(filters).map(([field, value]) => [
+									field,
+									value?.slice(0, CONTEXT_FIELD_LIMIT) ?? null,
+								]),
+							),
+							truncated_fields: truncatedFields,
+							days: args.days ?? 30,
+							cell_size: args.cell_size ?? 25,
+							coordinates: "world",
+							up_axis: null,
+							axis_source: "list_maps.upAxis",
+							units: {
+								coordinates: "engine world units",
+								cell_size: "engine world units",
+								weight: "events",
+								event_count: "events",
+								avg_fps: "frames/s",
+								avg_frame_time: "ms",
+								avg_gpu_time: "ms",
+								avg_memory: "MiB",
+								avg_mem_vram: "MiB",
+							},
+							null_reason: "unknown",
+						},
+					},
+				};
 			} catch (err) {
 				return errorResult(err);
 			}

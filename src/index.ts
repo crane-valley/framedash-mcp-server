@@ -9,7 +9,7 @@ import { StrictStdioServerTransport } from "./transport.js";
 const VERSION = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"))
 	.version as string;
 
-const apiKey = process.env.FRAMEDASH_API_KEY;
+const apiKey = process.env.FRAMEDASH_API_KEY?.trim();
 if (!apiKey) {
 	process.stderr.write(
 		"Error: FRAMEDASH_API_KEY environment variable is required. Create an API key on your project's API Keys page at https://app.framedash.dev and set FRAMEDASH_API_KEY. Docs: https://docs.framedash.dev\n",

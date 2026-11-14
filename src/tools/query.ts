@@ -9,7 +9,8 @@ export function registerQueryTools(server: McpServer, apiClient: ApiClient): voi
 		{
 			title: "Query Events",
 			description:
-				"Execute a read-only SQL query against the ClickHouse events table. Returns up to `limit` rows (default 100, max 1000).",
+				"Execute SELECT-only SQL against the ClickHouse events table. Requires an API key with data:admin; analytics:read alone and OAuth tokens cannot use this tool. For readonly access use list_builds, compare_builds, or get_insights instead; do not request elevated credentials for those tasks. Returns up to limit rows (default 100, max 1000).",
+			annotations: { readOnlyHint: true },
 			inputSchema: {
 				sql: z.string().describe("SQL query to execute"),
 				project_id: z.string().uuid().optional().describe("Override the default project ID"),

@@ -6,6 +6,33 @@ follows [Keep a Changelog](https://keepachangelog.com/) and
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-11-14
+
+### Added
+
+- Readonly `list_builds` and `compare_builds` tools reuse the public REST paths with
+  `analytics:read`, exact build lookup, supported time windows and comparison filters.
+- `get_heatmap` adds `structuredContent.cells` and `structuredContent.context`
+  with request filters, coordinate and metric units, and explicit unknown axis/null
+  causes; the legacy cell-array text is unchanged. Structured cells use the same
+  bounded complete-cell subset, with `total`, `returned`, and `truncated` describing
+  response truncation. Oversized metadata values are prefixes identified separately
+  by `context.truncated_fields`; original API filters are unchanged.
+
+### Fixed
+
+- Tool descriptions state required scopes and distinguish directional regressions,
+  sample counts and unknown null causes from a CI verdict or ingestion readiness.
+  Hosts can disable `query` with `createServer(..., { queryEnabled: false })`; the
+  OAuth-only hosted endpoint does so because OAuth cannot grant `data:admin`.
+  Stdio keeps `query` enabled by default.
+
+- A `FRAMEDASH_API_KEY` containing a control character (such as an embedded
+  newline) now makes the server exit at startup with an error that does not
+  include the key. Previously the server started and every tool call returned
+  a fetch header error containing the full key to the MCP client. A
+  whitespace-only `FRAMEDASH_API_KEY` is reported as missing.
+
 ## [0.2.0] - 2026-11-04
 
 ### Fixed

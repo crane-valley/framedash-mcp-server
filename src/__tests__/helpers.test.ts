@@ -1,5 +1,28 @@
 import { describe, expect, it } from "vitest";
-import { truncate } from "../helpers.js";
+import { structuredArrayResult, truncate } from "../helpers.js";
+
+describe("structuredArrayResult", () => {
+	it("copies the legacy JSON representation of holes and toJSON exactly once", () => {
+		let calls = 0;
+		const rows = new Array(2);
+		rows[1] = {
+			toJSON(key: string) {
+				calls++;
+				return { key, visible: true };
+			},
+		};
+		const expected = [null, { key: "1", visible: true }];
+		const result = structuredArrayResult(rows);
+		expect(result.content).toEqual([{ type: "text", text: JSON.stringify(expected, null, 2) }]);
+		expect(result.structuredContent).toEqual({
+			cells: expected,
+			total: 2,
+			returned: 2,
+			truncated: false,
+		});
+		expect(calls).toBe(1);
+	});
+});
 
 describe("truncate", () => {
 	it("returns full arrays that fit inside the response limit", () => {
