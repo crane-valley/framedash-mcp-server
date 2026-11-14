@@ -8,7 +8,7 @@ export function registerAlertTools(server: McpServer, apiClient: ApiClient): voi
 		"list_alerts",
 		{
 			title: "List Alerts",
-			description: "List all alert rules in the project.",
+			description: "List all alert rules in the project. Requires analytics:read.",
 			inputSchema: {
 				project_id: z.string().uuid().optional().describe("Override the default project ID"),
 			},
@@ -28,7 +28,7 @@ export function registerAlertTools(server: McpServer, apiClient: ApiClient): voi
 		"get_alert_history",
 		{
 			title: "Get Alert History",
-			description: "Get alert event history (trigger/resolve events).",
+			description: "Get alert event history (trigger/resolve events). Requires analytics:read.",
 			inputSchema: {
 				project_id: z.string().uuid().optional().describe("Override the default project ID"),
 				limit: z

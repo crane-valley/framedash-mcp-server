@@ -9,7 +9,7 @@ export function registerProjectTools(server: McpServer, apiClient: ApiClient): v
 		"list_projects",
 		{
 			title: "List Projects",
-			description: "Show the project bound to the current API key.",
+			description: "List projects accessible to the current credential. Requires analytics:read.",
 		},
 		async () => {
 			try {
@@ -25,7 +25,8 @@ export function registerProjectTools(server: McpServer, apiClient: ApiClient): v
 		"get_project_status",
 		{
 			title: "Get Project Status",
-			description: "Get the status of a project (event counts, last event time, etc.).",
+			description:
+				"Get the status of a project (event counts, last event time, etc.). Requires analytics:read.",
 			inputSchema: {
 				project_id: z.string().uuid().optional().describe("Override the default project ID"),
 			},
@@ -45,7 +46,8 @@ export function registerProjectTools(server: McpServer, apiClient: ApiClient): v
 		"list_maps",
 		{
 			title: "List Maps",
-			description: "List all maps in the project.",
+			description:
+				"List all maps in the project, including upAxis and bounds for interpreting heatmap coordinates. Requires analytics:read.",
 			inputSchema: {
 				project_id: z.string().uuid().optional().describe("Override the default project ID"),
 			},
@@ -65,7 +67,8 @@ export function registerProjectTools(server: McpServer, apiClient: ApiClient): v
 		"list_content",
 		{
 			title: "List Content",
-			description: "List content registry entries (event names, display labels, etc.).",
+			description:
+				"List content registry entries (event names, display labels, etc.). Requires analytics:read.",
 			inputSchema: {
 				project_id: z.string().uuid().optional().describe("Override the default project ID"),
 				type: z.string().optional().describe("Filter by content type"),

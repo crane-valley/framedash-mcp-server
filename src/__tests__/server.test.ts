@@ -19,13 +19,13 @@ function mockClient(data: unknown = []): ApiClient {
 }
 
 describe("createServer", () => {
-	it("creates a server with 12 tools", () => {
+	it("creates a server with 14 tools", () => {
 		const server = createServer(mockClient(), "0.0.0-test");
 		expect(server).toBeDefined();
 		expect(server.server).toBeDefined();
 	});
 
-	it("registers all 12 tools", () => {
+	it("registers all 14 tools", () => {
 		const client = mockClient();
 		const server = createServer(client, "0.0.0-test");
 
@@ -40,6 +40,8 @@ describe("createServer", () => {
 			"get_funnel",
 			"get_insights",
 			"get_heatmap",
+			"list_builds",
+			"compare_builds",
 			"list_projects",
 			"get_project_status",
 			"list_maps",
@@ -51,7 +53,7 @@ describe("createServer", () => {
 		for (const name of expectedTools) {
 			expect(toolNames).toContain(name);
 		}
-		expect(toolNames).toHaveLength(12);
+		expect(toolNames).toHaveLength(14);
 	});
 
 	it("registers 1 static resource and 3 resource templates", () => {
@@ -97,6 +99,8 @@ describe("createServer", () => {
 			get_funnel: { steps: "spawn,win", days: 30, window: 3600 },
 			get_insights: { metric: "count", group_by: "event_name", days: 7, limit: 10 },
 			get_heatmap: { map_id: "arena", cell_size: 25, days: 7 },
+			list_builds: { days: 30 },
+			compare_builds: { baseline: "base", candidate: "candidate" },
 			list_projects: {},
 			get_project_status: {},
 			list_maps: {},

@@ -1,6 +1,6 @@
 # @framedash/mcp-server
 
-MCP (Model Context Protocol) server for the Framedash game telemetry platform. Provides 12 read-only tools and 4 resources for querying analytics data from LLM-powered tools.
+MCP (Model Context Protocol) server for the Framedash game telemetry platform. This server provides 14 read-only tools over stdio and 4 resources for querying analytics data from LLM-powered tools. Version 0.2.0 provides 12 tools and does not include the build comparison tools or structured heatmap context.
 
 ## Setup
 
@@ -69,6 +69,24 @@ require an explicit `project_id` argument per call.
 | `list_content` | List content registry entries |
 | `list_alerts` | List alert rules |
 | `get_alert_history` | Alert trigger history |
+| `list_builds` | List builds or find an exact build ID |
+| `compare_builds` | Compare two builds without applying a CI threshold |
+
+### Build comparison and heatmap context
+
+When the hosted OAuth endpoint runs this server revision, it exposes 13 tools: `query` is omitted because OAuth cannot grant `data:admin`. Hosted availability depends on the deployed server revision.
+
+| Tool | Scope | Input / output |
+|------|-------|----------------|
+| `list_builds` | `analytics:read` | Optional `project_id`, `days` (7/14/30/90; default 30), exact `build_id`, `fresh` (default false). Returns the existing builds payload; an exact build avoids the newest-50 list cap. |
+| `compare_builds` | `analytics:read` | Required distinct `baseline`/`candidate` build IDs; optional `project_id`, `days` (7/14/30/90; default 30), `map_id`, `platform`, `fresh` (default false). Returns the existing P50/P95 comparison payload and sample/session counts; does not apply a CI threshold. |
+| `get_heatmap` context | `analytics:read` | Legacy text remains unchanged. `structuredContent.cells` contains the same complete cells as the legacy JSON prefix; `total`, `returned`, and `truncated` describe response truncation. `context` records filters, world-coordinate units, metric units, and unknown axis/null causes; use `list_maps.upAxis` to determine X/Z versus X/Y. |
+
+Heatmap response truncation is a presentation limit, not ingestion readiness or missing telemetry. Legacy text retains its existing 51,200 UTF-16-unit limit and, on overflow, at most 50 complete cells. Structured cells are recovered from that bounded JSON prefix without serializing the full source array again. If one cell exceeds the text limit and only a partial cell is displayed, structured cells are empty and `returned: 0, truncated: true` makes that omission explicit. `total` is the source cell count.
+
+Metadata filter strings (`project_id`, `map_id`, `event_name`) are limited to 256 UTF-16 units. Names in `context.truncated_fields` identify prefix values; the actual API request uses the full filter. Metadata truncation is separate from cell truncation. Including both text and structured representations, the JSON-encoded tool result stays within `6 * 51,200 + 8,192 = 315,392` bytes: each bounded representation needs at most three UTF-8 bytes per UTF-16 unit, and 8 KiB covers the fixed context, capped filter values and result fields. JSON-RPC envelope IDs are client-controlled and outside this tool-result budget.
+
+`compare_builds.isRegression` reports direction, not a threshold breach or statistical certainty. Sample/session counts do not verify expected samples or completed ingestion. Map/platform filters change the population; `load_time_ms` is unavailable with a map filter. Null metric causes remain unknown. The existing CLI `framedash perf-diff --threshold <pct> --fail-on-regression` provides an opt-in CI gate without requiring raw SQL access.
 
 ## Resources
 
@@ -95,7 +113,7 @@ pnpm --filter @framedash/mcp-server... build
 pnpm --filter @framedash/mcp-server test
 ```
 
-With pnpm 9, the trailing `...` selects the MCP package plus its workspace
+The trailing `...` selects the MCP package plus its workspace
 dependencies, including `@framedash/api-client`, before compiling from a clean
 checkout.
 

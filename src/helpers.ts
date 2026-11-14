@@ -183,6 +183,29 @@ export function textResult(data: unknown) {
 	return { content: [{ type: "text" as const, text: truncate(data) }] };
 }
 
+export function structuredArrayResult(data: unknown) {
+	const result = textResult(data);
+	const text = result.content[0]?.text ?? "null";
+	const footerStart = text.lastIndexOf(TRUNCATED_FOOTER_PREFIX);
+	const rowsTruncated = footerStart >= 0 && text.endsWith(TRUNCATED_FOOTER_SUFFIX);
+	const partial = text.endsWith(SIMPLE_TRUNCATED_FOOTER);
+	// Recover only the bounded legacy JSON, so structured output cannot revive omitted rows.
+	const decoded = JSON.parse(partial ? "null" : rowsTruncated ? text.slice(0, footerStart) : text);
+	const cells: unknown[] = Array.isArray(decoded) ? decoded : [];
+	const truncated = rowsTruncated || partial;
+	const total = truncated
+		? Array.isArray(data)
+			? data.length
+			: null
+		: Array.isArray(decoded)
+			? cells.length
+			: null;
+	return {
+		...result,
+		structuredContent: { cells, total, returned: cells.length, truncated },
+	};
+}
+
 export function getErrorMessage(err: unknown): string {
 	return err instanceof Error ? err.message : String(err);
 }
