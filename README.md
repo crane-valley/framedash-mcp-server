@@ -1,6 +1,6 @@
 # @framedash/mcp-server
 
-MCP (Model Context Protocol) server for the Framedash game telemetry platform. The published 0.2.0 package provides 12 read-only tools and 4 resources for querying analytics data from LLM-powered tools.
+MCP (Model Context Protocol) server for the Framedash game telemetry platform. This server provides 14 read-only tools over stdio and 4 resources for querying analytics data from LLM-powered tools. Version 0.2.0 provides 12 tools and does not include the build comparison tools or structured heatmap context.
 
 ## Setup
 
@@ -69,10 +69,12 @@ require an explicit `project_id` argument per call.
 | `list_content` | List content registry entries |
 | `list_alerts` | List alert rules |
 | `get_alert_history` | Alert trigger history |
+| `list_builds` | List builds or find an exact build ID |
+| `compare_builds` | Compare two builds without applying a CI threshold |
 
-### Unreleased source additions
+### Build comparison and heatmap context
 
-These additions require building this source revision; they are not in the published 0.2.0 npm package. This revision registers 14 tools on stdio and 13 on the hosted OAuth endpoint, where `query` is omitted because OAuth cannot grant `data:admin`.
+When the hosted OAuth endpoint runs this server revision, it exposes 13 tools: `query` is omitted because OAuth cannot grant `data:admin`. Hosted availability depends on the deployed server revision.
 
 | Tool | Scope | Input / output |
 |------|-------|----------------|
@@ -111,7 +113,7 @@ pnpm --filter @framedash/mcp-server... build
 pnpm --filter @framedash/mcp-server test
 ```
 
-With pnpm 9, the trailing `...` selects the MCP package plus its workspace
+The trailing `...` selects the MCP package plus its workspace
 dependencies, including `@framedash/api-client`, before compiling from a clean
 checkout.
 
